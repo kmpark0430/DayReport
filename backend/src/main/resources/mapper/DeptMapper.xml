@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dev.mapper.DeptMapper">
+
+<!-- 모사 메뉴 리스트 -->
+<select id="selectRootDeptList" resultType="DeptDTO">
+  SELECT 
+    CASE IFNULL(m.user_id, 0)
+      WHEN '0' THEN '0'
+      ELSE '1'
+    END AS new_cd,
+    
+    CASE IFNULL(p.write_dept_cd, 0)
+      WHEN '0' THEN '0'
+      ELSE '1'
+    END AS data_fg,
+    
+    n.*
+  FROM (
+    SELECT * 
+    FROM read_new 
+    WHERE user_id = #{userId}
+      AND idx_date = DATE_FORMAT(CURDATE(), '%Y%m%d')
+    GROUP BY idx_date, user_id, dept_nm, pms_fg
+  ) m
+  RIGHT OUTER JOIN (
+    SELECT * 
+    FROM (
+      SELECT * 
+      FROM sgw_base_dept 
+      WHERE use_fg = 'Y'
+        AND (
+          parent_cd = 'A0107' OR 
+          parent_cd = 'A0017' OR 
+          parent_cd = 'A0025' OR 
+          parent_cd = 'A0212'
+        )
+        AND dept_cd <![CDATA[ <> ]]> 'A0018'
+        AND dept_nm LIKE '%본부'
+      
+      <choose>
+        <when test="(titleCd == '23' and deptNm != '에스텍베스트-운영팀')
+                    or (titleCd == '29' and userId != 'jyt6426' and userId != 'stec14')
+                    or titleCd == '34' or titleCd == '41' or titleCd == '36'">
+          
+          <if test="userId == 'nakdb'">
+            AND (
+              dept_nm = #{mainDeptNm}
+              OR dept_nm = 'HS1본부'
+              OR dept_nm = '에스텍베스트'
+            )
+          </if>
+          <if test="userId == 'chan2916'">
+            AND (
+              dept_nm = #{mainDeptNm}
+              OR dept_nm = '에스텍베스트'
+            )
+          </if>
+          <if test="userId == 'dream3330' or userId == 'kjj9366'">
+            AND dept_nm = '제주지역'
+          </if>
+          <if test="userId != 'nakdb' and userId != 'chan2916' and userId != 'dream3330' and userId != 'kjj9366'">
+            AND dept_nm = #{mainDeptNm}
+          </if>
+        </when>
+      </choose>
+      
+      ORDER BY dept_sort
+    ) y
+  ) n ON m.dept_nm = n.dept_nm
+  LEFT OUTER JOIN (
+    SELECT write_dept_cd 
+    FROM day_report_dev_kmpark 
+    WHERE idx_date = DATE_FORMAT(CURDATE(), '%Y%m%d')
+  ) p ON n.dept_cd = p.write_dept_cd
+</select>
+
+
+<!-- 계열사 메뉴 리스트 -->
+<select id="selectDeptList" resultType="DeptDTO">
+  SELECT 
+    CASE IFNULL(m.user_id, 0)
+      WHEN '0' THEN '0'
+      ELSE '1'
+    END AS new_cd,
+    
+    CASE IFNULL(p.write_dept_cd, 0)
+      WHEN '0' THEN '0'
+      ELSE '1'
+    END AS data_fg,
+    
+    n.*
+    
+  FROM (
+    SELECT * 
+    FROM read_new 
+    WHERE user_id = #{userId}
+      AND idx_date = DATE_FORMAT(CURDATE(), '%Y%m%d')
+    GROUP BY idx_date, user_id, dept_nm, pms_fg
+  ) m
+  
+  RIGHT OUTER JOIN (
+    SELECT * FROM (
+      SELECT * 
+      FROM sgw_base_dept 
+      WHERE use_fg = 'Y'
+        AND parent_cd = 'A0000'
+        AND dept_cd NOT LIKE 'A%'
+        AND dept_cd <![CDATA[ <> ]]> 'G0001'
+        <if test="userId != 'lhs'">
+          AND dept_nm <![CDATA[ <> ]]> '에스텍프라임'
+        </if>
+      
+      <choose>
+        <when test="(titleCd == '23' and deptNm != '에스텍베스트-운영팀') 
+                    or (titleCd == '29' and userId != 'jyt6426' and userId != 'stec14') 
+                    or titleCd == '34' 
+                    or titleCd == '41' 
+                    or titleCd == '36'">
+          
+          <if test="userId == 'nakdb'">
+            AND (dept_nm = #{arrDeptNm0} 
+                 OR dept_nm = 'HS1본부' 
+                 OR dept_nm = '에스텍베스트')
+          </if>
+          
+          <if test="userId == 'chan2916'">
+            AND (dept_nm = #{arrDeptNm0}
+                 OR dept_nm = '에스텍베스트')
+          </if>
+          
+          <if test="userId == 'dream3330' or userId == 'kjj9366'">
+            AND dept_nm = '제주지역'
+          </if>
+          
+          <if test="userId != 'nakdb' 
+                    and userId != 'chan2916' 
+                    and userId != 'dream3330' 
+                    and userId != 'kjj9366'">
+            AND dept_nm = #{cleanedDeptNm}
+          </if>
+        </when>
+      </choose>
+      
+      ORDER BY DEPT_SORT
+    ) y
+  ) n ON m.dept_nm = n.dept_nm
+  
+  LEFT OUTER JOIN (
+    SELECT write_dept_cd 
+    FROM day_report_dev_kmpark 
+    WHERE idx_date = DATE_FORMAT(CURDATE(), '%Y%m%d')
+  ) p ON n.dept_cd = p.write_dept_cd
+</select>
+
+</mapper>

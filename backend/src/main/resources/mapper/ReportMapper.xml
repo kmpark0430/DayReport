@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dev.mapper.ReportMapper">
+
+<select id="getReport" resultType="ReportDTO">
+	SELECT
+	    idx_date,
+	    control_repoter,
+	    control_content,
+	    main_repoter,
+	    main_content,
+	    trouble_repoter,
+	    trouble_content,
+	    praise_repoter,
+	    praise_content,
+	    etc_content,
+	    before_to,
+	    before_po,
+	    before_to_dabi,
+	    before_po_dabi,
+	    write_user_id,
+	    write_dept_cd AS deptCd,
+	    write_date,
+	    before_to2,
+    	content_mode,
+		html_content
+	FROM
+	    day_report_dev_kmpark
+	WHERE
+	    idx_date  = #{idxDate}
+	    AND write_dept_cd = #{deptCd}
+</select>
+
+<!-- 최근 보고서 조회 -->
+<select id="getRecentReport" resultType="ReportDTO">
+	SELECT *
+	FROM
+	    day_report_dev_kmpark
+	WHERE
+	    write_dept_cd = #{deptCd}
+	ORDER BY
+		idx_date
+	DESC LIMIT 1
+</select>
+
+<!-- insert 전에 해당 날짜 및 부서로 등록된 데이터가 있는지 체크 -->
+<select id="beforeSaveCountCheck" resultType="int">
+	SELECT
+		COUNT(*)
+	FROM day_report_dev_kmpark
+	WHERE
+		idx_date = #{idxDate}
+	AND write_dept_cd = #{deptCd}
+</select>
+
+<insert id="insert" parameterType="ReportDTO">
+	INSERT INTO day_report_dev_kmpark
+		(
+		idx_date, 
+		control_repoter,
+		control_content, 
+		main_repoter, 
+		main_content, 
+		trouble_repoter, 
+		trouble_content, 
+		praise_repoter, 
+		praise_content, 
+		etc_content, 
+		before_to, 
+		before_po, 
+		before_to_dabi, 
+		before_po_dabi, 
+		write_user_id,
+		write_dept_cd, 
+		write_date, 
+		before_to2, 
+		content_mode, 
+		html_content
+		)
+		VALUES
+		(
+		#{idxDate},
+		#{controlRepoter},
+		#{controlContent},
+		#{mainRepoter},
+		#{mainContent},
+		#{troubleRepoter},
+		#{troubleContent},
+		#{praiseRepoter},
+		#{praiseContent},
+		#{etcContent},
+		#{beforeTo},
+		#{beforePo},
+		#{beforeToDabi},
+		#{beforePoDabi},
+		#{writeUserId},
+		#{deptCd},
+		NOW(),
+		#{beforeTo2},
+		#{contentMode},
+		#{htmlContent}
+		)
+</insert>
+
+<update id="update" parameterType="ReportDTO">
+	UPDATE day_report_dev_kmpark
+	<set>
+		control_repoter   = #{controlRepoter},
+		control_content   = #{controlContent},
+		main_repoter      = #{mainRepoter},
+		main_content      = #{mainContent},
+		trouble_repoter   = #{troubleRepoter},
+		trouble_content   = #{troubleContent},
+		praise_repoter    = #{praiseRepoter},
+		praise_content    = #{praiseContent},
+		etc_content       = #{etcContent},
+		html_content      = #{htmlContent},
+		before_to         = #{beforeTo},
+		before_po         = #{beforePo},
+		before_to_dabi    = #{beforeToDabi},
+		before_po_dabi    = #{beforePoDabi},
+		before_to2        = #{beforeTo2},
+		write_user_id     = #{writeUserId},
+		content_mode      = #{contentMode}
+	</set>
+		WHERE idx_date      = #{idxDate}
+		  AND write_dept_cd  = #{deptCd}
+</update>
+
+</mapper>
