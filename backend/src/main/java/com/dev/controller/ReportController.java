@@ -26,7 +26,7 @@ public class ReportController {
 	private final ReportService reportService;
 	
 	@Operation( summary = "부서별 동향 보고 데이터 조회",
-				description = "주어진 `idxDate`(YYYYMMDD)와 `deptCd`에 해당하는 보고서 데이터를 반환합니다.")
+				description = "주어진 `idxDate`(YYYYMMDD)와 `deptCd`에 해당하는 보고서 데이터를 반환함")
 	@GetMapping("/{idxDate}/{deptCd}")
 	public ResponseEntity<ReportDTO> getReport(@PathVariable("idxDate") String idxDate, @PathVariable("deptCd") String deptCd) {
 		log.info("@Controller getReport idxDate={}, deptCd={}", idxDate, deptCd);

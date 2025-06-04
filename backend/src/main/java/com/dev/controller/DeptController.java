@@ -23,7 +23,7 @@ public class DeptController {
 	
 	private final DeptService deptService;
 	
-    @Operation( summary = "모사 or 계열사별 부서코드 가져와서 메뉴 만듬",
+    @Operation( summary = "메뉴의 모사 or 계열사별 부서코드 가져옴",
     	      	description = "쿼리 파라미터 `type` 에 '모사' 또는 '계열사' 를 넣어 호출")
     
 	@GetMapping("/getCode")
