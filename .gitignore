@@ -53,8 +53,8 @@
 /backend/.idea/
 /backend/*.iml
 /backend/.classpath
-/backend/.project
 /backend/.settings/
+**/.project
 
 # 2.5) 로컬 로그 폴더 (만약 따로 생성한다면)
 /backend/logs/
