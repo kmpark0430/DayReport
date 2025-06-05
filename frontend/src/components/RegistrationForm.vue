@@ -31,64 +31,178 @@
     <!-- 본문 -->
     <v-card-text>
       <v-form ref="formRef">
-
         <!-- TEMPLATE 모드 -->
         <div v-if="form.contentMode === 'T'">
-            <table class="navy-table">
-                <thead>
-                    <tr>
-                    <th style="width:15%;">구분</th>
-                    <th style="width:15%;">보고자</th>
-                    <th style="width:70%;">주요 내용</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="item in items" :key="item.key">
-                    <td>{{ item.label }}</td>
-                    <!-- 보고자 -->
-                    <td>
-                      <div
-                        class="editable-content reporter"
-                        contenteditable="true"
-                        v-html="form[item.key + 'Repoter']"
-                        @blur="onTemplateRepoterBlur(item.key, $event)"
-                      ></div>
-                    </td>
-                    <!-- 주요내용-->
-                    <td>
-                      <div
-                      class="editable-content"
+          <table class="navy-table">
+              <thead>
+                  <tr>
+                  <th style="width:15%;">구분</th>
+                  <th style="width:15%;">보고자</th>
+                  <th style="width:70%;">주요 내용</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  <tr v-for="item in items" :key="item.key">
+                  <td>{{ item.label }}</td>
+                  <!-- 보고자 -->
+                  <td>
+                    <div
+                      class="editable-content reporter"
                       contenteditable="true"
-                      v-html="form[item.key + 'Content']"
-                      @blur="onTemplateContentBlur(item.key, $event)"
-                      ></div>
-                    </td>
-
-                    </tr>
-                    <tr>
-                    <td>비고</td>
-                    <td colspan="2">
-                      <div
-                        class="editable-content"
-                        contenteditable="true"
-                        v-html="form.etcContent"
-                        @blur="onTemplateEtcBlur($event)"
-                      ></div>
-                    </td>
-                    </tr>
+                      v-html="form[item.key + 'Repoter']"
+                      @blur="onTemplateRepoterBlur(item.key, $event)"
+                    ></div>
+                  </td>
+                  <!-- 주요내용-->
+                  <td>
+                    <div
+                    class="editable-content"
+                    contenteditable="true"
+                    v-html="form[item.key + 'Content']"
+                    @blur="onTemplateContentBlur(item.key, $event)"
+                    ></div>
+                  </td>
+                  
+                </tr>
+                <tr>
+                  <td>비고</td>
+                  <td colspan="2">
+                    <div
+                    class="editable-content"
+                    contenteditable="true"
+                    v-html="form.etcContent"
+                    @blur="onTemplateEtcBlur($event)"
+                    ></div>
+                  </td>
+                  </tr>
                 </tbody>
-            </table>
+          </table>
         </div>
 
-        <!-- EDITOR 모드 -->
-        <div v-else>
-          <!-- editor 인스턴스가 있을 때만 렌더 -->
-          <div v-if="editor">
-            <EditorContent
+        <!-- TipTap Editor 모드 (인스턴스가 있을 때만 렌더) -->
+        <div v-else-if="editor">
+          <!-- 에디터 툴바 아이콘 버튼 -->
+          <div class="d-flex align-center mb-2">
+            <v-tooltip location="top">
+              <template #activator="{ props }">
+                <v-btn
+                  v-bind="props"
+                  type="button"
+                  @click="toggleBold"
+                  :class="{ 'is-active': editor.isActive('bold') }"
+                  color="primary"
+                  class="mr-1"
+                  >
+                  <v-icon>mdi-format-bold</v-icon>
+                </v-btn>
+              </template>
+              <span>굵게</span>
+            </v-tooltip>
+
+            <v-tooltip location="top">
+              <template #activator="{ props }">
+                <v-btn
+                  variant="outlined"
+                  v-bind="props"
+                  type="button"
+                  @click="toggleItalic"
+                  :class="{ 'is-active': editor.isActive('italic') }"
+                  color="primary"
+                  class="mr-1"
+                >
+                  <v-icon>mdi-format-italic</v-icon>
+                </v-btn>
+              </template>
+              <span>기울임</span>
+            </v-tooltip>
+
+            <v-tooltip location="top">
+              <template #activator="{ props }">
+                <v-btn
+                  v-bind="props"
+                  type="button"
+                  @click="toggleUnderline"
+                  :class="{ 'is-active': editor.isActive('underline') }"
+                  color="primary"
+                  class="mr-1"
+                >
+                  <v-icon>mdi-format-underline</v-icon>
+                </v-btn>
+              </template>
+              <span>밑줄</span>
+            </v-tooltip>
+
+            <v-tooltip location="top">
+              <template #activator="{ props }">
+                <v-btn
+                  variant="outlined"
+                  v-bind="props"
+                  type="button"
+                  @click="toggleStrike"
+                  :class="{ 'is-active': editor.isActive('strike') }"
+                  color="primary"
+                  class="mr-1"
+                >
+                  <v-icon>mdi-format-strikethrough</v-icon>
+                </v-btn>
+              </template>
+              <span>취소선</span>
+            </v-tooltip>
+
+            <v-tooltip location="top">
+              <template #activator="{ props }">
+                <v-btn
+                  v-bind="props"
+                  type="button"
+                  @click="setAlign('left')"
+                  :class="{ 'is-active': editor.isActive({ textAlign: 'left' }) }"
+                  color="primary"
+                  class="mr-1"
+                >
+                  <v-icon>mdi-format-align-left</v-icon>
+                </v-btn>
+              </template>
+              <span>왼쪽 정렬</span>
+            </v-tooltip>
+
+            <v-tooltip location="top">
+              <template #activator="{ props }">
+                <v-btn
+                  variant="outlined"
+                  v-bind="props"
+                  type="button"
+                  @click="setAlign('center')"
+                  :class="{ 'is-active': editor.isActive({ textAlign: 'center' }) }"
+                  color="primary"
+                  class="mr-1"
+                >
+                  <v-icon>mdi-format-align-center</v-icon>
+                </v-btn>
+              </template>
+              <span>가운데 정렬</span>
+            </v-tooltip>
+
+            <v-tooltip location="top">
+              <template #activator="{ props }">
+                <v-btn
+                  v-bind="props"
+                  type="button"
+                  @click="setAlign('right')"
+                  :class="{ 'is-active': editor.isActive({ textAlign: 'right' }) }"
+                  color="primary"
+                  class="mr-1"
+                >
+                  <v-icon>mdi-format-align-right</v-icon>
+                </v-btn>
+              </template>
+              <span>오른쪽 정렬</span>
+            </v-tooltip>
+          </div>
+
+          <EditorContent
             :editor="editor"
             class="editor"
-            />
-          </div>
+          />
         </div>
 
       </v-form>
@@ -99,8 +213,10 @@
 
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount, watch } from 'vue'
-import { Editor, EditorContent }       from '@tiptap/vue-3'
+import { Editor, EditorContent }        from '@tiptap/vue-3'
 import StarterKit                       from '@tiptap/starter-kit'
+import Underline                        from '@tiptap/extension-underline'
+import TextAlign                        from '@tiptap/extension-text-align'
 import Table                            from '@tiptap/extension-table'
 import TableRow                         from '@tiptap/extension-table-row'
 import TableCell                        from '@tiptap/extension-table-cell'
@@ -181,16 +297,19 @@ const form = reactive({
   etcContent:''
 })
 
-// TipTap 에디터 인스턴스 생성
+// TipTap 에디터 인스턴스 생성 -> 추구 조건부 렌더링 필요시 ref() 쓰기
 const editor = new Editor({
-  content: (
-      // 등록 모드 + Editor 모드면 뼈대 HTML 불러옴, 아니면 form.htmlContent
-      (!props.isEdit && form.contentMode === 'E')
-      ? editorTableHtml
-      : form.htmlContent
-  ),
   extensions: [
-      StarterKit,
+      StarterKit.configure({
+        bold: true,
+        italic: true,
+        strike: true,
+      }),
+      Underline,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+
       Table.configure({
         resizable: false,
         HTMLAttributes: {
@@ -201,15 +320,20 @@ const editor = new Editor({
       TableHeader,
       TableCell,
   ],
+  content: (
+      // 등록 모드 + Editor 모드면 뼈대 HTML 불러옴, 아니면 form.htmlContent
+      (!props.isEdit && form.contentMode === 'E')
+      ? editorTableHtml
+      : form.htmlContent
+  ),
   onUpdate: ({ editor }) => {
       form.htmlContent = editor.getHTML()
       form.htmlContent = stripMinWidth(form.htmlContent)
-  }
+  },
 })
 
 
-// HTML 문자열에서 모든 min-width 인라인 스타일을 제거하는 헬퍼
-// <table style="…min-width:…"> 또는는 <col style="…min-width:…"> 제거
+// HTML 문자열에서 모든 min-width 인라인 스타일을 제거하는 헬퍼 <table style="…min-width:…"> 또는는 <col style="…min-width:…"> 제거
 function stripMinWidth(html) {
   return html
     .replace(/(<table[^>]*?)\sstyle="[^"]*?min-width:[^"]*?;?[^"]*?"/gi, '$1')
@@ -228,12 +352,12 @@ function onTemplateRepoterBlur(key, evt) {
   // 한 번만 바뀌기 때문에 v-html 리렌더링도 여기서 딱 한 번만 발생
 }
 
-// “주요 내용”에서 focus가 빠질 때(blur) 호출
+// 주요내용 에서 focus가 빠질 때(blur) 호출
 function onTemplateContentBlur(key, evt) {
   form[key + 'Content'] = evt.target.innerHTML;
 }
 
-// “비고”에서 focus가 빠질 때(blur) 호출
+// 비고 에서 focus가 빠질 때(blur) 호출
 function onTemplateEtcBlur(evt) {
   form.etcContent = evt.target.innerHTML;
 }
@@ -336,17 +460,19 @@ watch(() => props.idxDate, async (newDate) => {
 
 // 언마운트시 에디터 파기
 onBeforeUnmount(() => {
-  editor.destroy()
+  if (editor) {
+    editor.destroy()
+  }
 })
 
 
 // (해당 부서의) 최근 보고서 데이터 가져오기
 async function loadRecent() {
   const dto = await recentReport(form.deptCd)
-
+  
   // 서버에서 온 모드로 템플릿/에디터 토글 동기화
   form.contentMode = dto.contentMode
-
+  
   // 모드에 따라 각 필드 복원
   if (form.contentMode === 'T') {
     // 템플릿 모드: A/B/C/D + etc 복원
@@ -361,13 +487,32 @@ async function loadRecent() {
   } else {
     // 에디터 모드: HTML 전체 복원
     form.htmlContent = dto.htmlContent || editorTableHtml
-
+    
     // 에디터 인스턴스에도 반영
     if (editor) {
       editor.commands.setContent(form.htmlContent)
     }
   }
 }
+
+
+// Editor ToolTip
+function toggleBold() {
+  editor.chain().focus().toggleBold().run()
+}
+function toggleItalic() {
+  editor.chain().focus().toggleItalic().run()
+}
+function toggleUnderline() {
+  editor.chain().focus().toggleUnderline().run()
+}
+function toggleStrike() {
+  editor.chain().focus().toggleStrike().run()
+}
+function setAlign(alignment) {
+  editor.chain().focus().setTextAlign(alignment).run()
+}
+
 
 // 저장
 async function submit() {
@@ -527,4 +672,10 @@ async function submit() {
 .editable-content.content-box {
   min-height: 80px;
 }
+
+/* 글자 굵게 */
+.is-active {
+  font-weight: bold;
+}
+
 </style>
