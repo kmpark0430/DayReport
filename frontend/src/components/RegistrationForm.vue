@@ -311,7 +311,7 @@ const editor = new Editor({
       }),
 
       Table.configure({
-        resizable: false,
+        resizable: false,   //크기 조절 기능 비활성화 false
         HTMLAttributes: {
           class: 'navy-table'
         }

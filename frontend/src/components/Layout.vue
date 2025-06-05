@@ -7,15 +7,14 @@
       clipped-left 
       dark 
       color="primary" 
-      height="40"
+      height="50"
       class="v-app-bar"
     >
       <v-toolbar-title class="d-flex align-center">
         <v-img
-          src="/stec_logo.png"
+          src="/stec_logo_white4.png"
           alt="logo"
-          top="20px"
-          width="200px"
+          style="width:200px;margin-left:35px;"
           contain
           eager
         />
@@ -153,7 +152,7 @@ const selectedDept = ref('')
 
 // 등록 화면 토글용
 const isRegistering = ref(false)
-const formIdxDate   = ref('')  // 등록 폼에 보낼 YYYYMMDD
+const formIdxDate   = ref('')  // 등록 폼에 보낼 idxDATE(yyyymmdd)
 const formDeptCd    = ref('')  // 등록 폼에 보낼 deptCd
 
 // --- 부서목록 로드
@@ -271,9 +270,7 @@ onMounted(async () => {
   await loadDepartments()
   await loadReport()
 })
-
 </script>
-
 
 
 <style scoped>
@@ -292,6 +289,12 @@ onMounted(async () => {
   /* 모사/계열사 토글 균등 분할 */
   .toggle-wrapper .v-btn-toggle { display: flex }
   .toggle-wrapper .v-btn        { flex: 1 }
+
+  /*토글 pa-0, border 추가*/
+  .toggle-wrapper {
+    padding: 0 !important;
+    border: 1px solid #ccc !important;
+  }
 
   /* drawer-content 내부 스크롤 유지 */
   .drawer-content { display: flex; flex-direction: column; height: 100% }
