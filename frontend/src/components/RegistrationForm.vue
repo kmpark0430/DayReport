@@ -42,7 +42,8 @@
                   </tr>
               </thead>
               <tbody>
-                  <tr v-for="item in items" :key="item.key">
+                <!-- 구분 -->
+                <tr v-for="item in templateItems" :key="item.key">
                   <td>{{ item.label }}</td>
                   <!-- 보고자 -->
                   <td>
@@ -53,29 +54,31 @@
                       @blur="onTemplateRepoterBlur(item.key, $event)"
                     ></div>
                   </td>
-                  <!-- 주요내용-->
+                  <!-- 주요내용 -->
                   <td>
                     <div
                     class="editable-content"
                     contenteditable="true"
                     v-html="form[item.key + 'Content']"
                     @blur="onTemplateContentBlur(item.key, $event)"
+                    style="text-align: left;"
                     ></div>
                   </td>
-                  
                 </tr>
+                <!-- 비고 -->
                 <tr>
-                  <td>비고</td>
+                  <td>{{ etcItem.label }}</td>
                   <td colspan="2">
                     <div
-                    class="editable-content"
-                    contenteditable="true"
-                    v-html="form.etcContent"
-                    @blur="onTemplateEtcBlur($event)"
+                      class="editable-content content-box"
+                      contenteditable="true"
+                      v-html="form.etcContent"
+                      @blur="onTemplateEtcBlur($event)"
+                      style="text-align: left;"
                     ></div>
                   </td>
-                  </tr>
-                </tbody>
+                </tr>
+              </tbody>
           </table>
         </div>
 
@@ -199,6 +202,7 @@
             </v-tooltip>
           </div>
 
+          <!-- TipTap -->
           <EditorContent
             :editor="editor"
             class="editor"
@@ -212,15 +216,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount, watch } from 'vue'
-import { Editor, EditorContent }        from '@tiptap/vue-3'
-import StarterKit                       from '@tiptap/starter-kit'
-import Underline                        from '@tiptap/extension-underline'
-import TextAlign                        from '@tiptap/extension-text-align'
-import Table                            from '@tiptap/extension-table'
-import TableRow                         from '@tiptap/extension-table-row'
-import TableCell                        from '@tiptap/extension-table-cell'
-import TableHeader                      from '@tiptap/extension-table-header'
+import { ref, reactive, onMounted, onBeforeUnmount, watch, computed } from 'vue'
+import { Editor, EditorContent } from '@tiptap/vue-3'
+import StarterKit from '@tiptap/starter-kit'
+import Underline from '@tiptap/extension-underline'
+import TextAlign from '@tiptap/extension-text-align'
+import Table from '@tiptap/extension-table'
+import TableRow from '@tiptap/extension-table-row'
+import TableCell from '@tiptap/extension-table-cell'
+import TableHeader from '@tiptap/extension-table-header'
+import HardBreak from '@tiptap/extension-hard-break'    // 직접 정의한 keymap (Enter를 <br>로 바꾸기위해)
 import { fetchReport, recentReport, createReport, updateReport } from '@/services/report'
 
 const editorTableHtml = `
@@ -280,15 +285,22 @@ const items = [
   { key:'etc',  label:'비고 (기타사항)' },
 ]
 
-// reactive form 객체 초기화
+// etc 외 항목만 필터링
+const templateItems = computed(() =>
+  items.filter(item => item.key !== 'etc')
+)
+// etc 항목만 추출
+const etcItem = computed(() =>
+  items.find(item => item.key === 'etc')
+)
+
+// form 객체 초기화
 const form = reactive({
   idxDate:      props.idxDate,
   deptCd:       props.deptCd,
-  contentMode:  'E',      // 초기 모드 - 에디터
-
+  contentMode:  'E', // 초기 모드 - 에디터
   // 에디터 필드
   htmlContent:'',
-
   // 템플릿 필드
   controlRepoter:'', controlContent:'',
   mainRepoter:'',    mainContent:'',
@@ -300,35 +312,41 @@ const form = reactive({
 // TipTap 에디터 인스턴스 생성 -> 추구 조건부 렌더링 필요시 ref() 쓰기
 const editor = new Editor({
   extensions: [
-      StarterKit.configure({
-        bold: true,
-        italic: true,
-        strike: true,
-      }),
-      Underline,
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-      }),
+    StarterKit.configure({
+      bold: true,
+      italic: true,
+      strike: true,
+      hardBreak: false,
+    }),
+    Underline,
+    TextAlign.configure({
+      types: ['heading', 'paragraph'],
+    }),
 
-      Table.configure({
-        resizable: false,   //크기 조절 기능 비활성화 false
-        HTMLAttributes: {
-          class: 'navy-table'
+    Table.configure({
+      resizable: false,   // 크기 조절 기능 비활성화 false
+      HTMLAttributes: {
+        class: 'navy-table'
+      }
+    }),
+    TableRow,
+    TableHeader,
+    TableCell,
+    HardBreak.extend({
+      addKeyboardShortcuts() {
+        return {
+          Enter: () => this.editor.commands.setHardBreak(),  // Enter키를 <br>로 커스터마이징징
         }
-      }),
-      TableRow,
-      TableHeader,
-      TableCell,
+      }
+    }),
   ],
   content: (
-      // 등록 모드 + Editor 모드면 뼈대 HTML 불러옴, 아니면 form.htmlContent
       (!props.isEdit && form.contentMode === 'E')
-      ? editorTableHtml
+      ? editorTableHtml   // mount 시점 기준 신규등록+Editor 모드면 뼈대 HTML 불러옴
       : form.htmlContent
   ),
-  onUpdate: ({ editor }) => {
+  onUpdate: ({ editor }) => { // 수정될때마다
       form.htmlContent = editor.getHTML()
-      form.htmlContent = stripMinWidth(form.htmlContent)
   },
 })
 
@@ -367,7 +385,6 @@ onMounted(async () => {
   try {
     if (props.isEdit) {
       // 수정 모드라면 기존 데이터를 가져와 form에 세팅
-      console.log('수정모드에서 fetchReport 호출 ===>')
       const dto = await fetchReport(form.idxDate, form.deptCd)
       form.contentMode = dto.contentMode    // mode 대로 초기화
 
@@ -398,7 +415,6 @@ onMounted(async () => {
 watch(() => props.idxDate, async (newDate) => {
   if (!newDate || !form.deptCd) return
 
-  console.log('날짜가 변경되었어요 -> ',props.idxDate)
   //템플릿 초기화
   items.forEach(({ key }) => {
   if (key === 'etc') form.etcContent = ''
@@ -496,7 +512,7 @@ async function loadRecent() {
 }
 
 
-// Editor ToolTip
+// Editor ToolTip function
 function toggleBold() {
   editor.chain().focus().toggleBold().run()
 }
@@ -513,19 +529,41 @@ function setAlign(alignment) {
   editor.chain().focus().setTextAlign(alignment).run()
 }
 
+// td 1열에 style="vertical-align=middle" 추가
+function addVerticalAlign(html) {
+  console.log("?")
+  // <tr> 안에서 첫 번째 <td>만 찾아서 처리
+  return html.replace(/<tr[^>]*>([\s\S]*?)<\/tr>/gi, (match, inner) => {
+    // 첫 번째 <td>만 스타일 삽입
+    const updatedInner = inner.replace(/<td([^>]*)>/i, (tdMatch, attrs) => {
+      const hasStyle = /style\s*=/.test(attrs);
+      if (hasStyle) {
+        // 기존 style 속성 안에 vertical-align 없으면 추가
+        return /vertical-align\s*:/i.test(attrs)
+          ? `<td${attrs}>` // 이미 있으면 그대로
+          : `<td${attrs.replace(/style\s*=\s*["']/, 'style="vertical-align:middle !important;')}`;
+      } else {
+        // style 없으면 새로 추가
+        return `<td style="vertical-align: middle !important;"${attrs}>`;
+      }
+    });
+    return `<tr>${updatedInner}</tr>`;
+  });
+}
+
 
 // 저장
 async function submit() {
   // 간단 유효성: 날짜, 부서값 있는지
   if (!form.idxDate || !form.deptCd) return
 
- // 에디터 모드라면 inline min-width 제거
+ // 전송 전 style 체크
   if (form.contentMode === 'E') {
-    form.htmlContent = stripMinWidth(form.htmlContent)
+    form.htmlContent = stripMinWidth(form.htmlContent)     // inline min-width 제거
+    form.htmlContent = addVerticalAlign(form.htmlContent)  // 1열에 style 붙이기
   }
-
   const payload = { ...form }  // contentMode와 해당 필드 모두 포함
-  console.log("payload:", payload)
+  console.log("RegistrationForm submit payload:", payload)
 
   try {
     // 수정이면 PUT, 아니면 POST
@@ -533,7 +571,6 @@ async function submit() {
         ? await updateReport(form.idxDate, form.deptCd, payload)
         : await createReport(payload);
 
-        console.log("저장 res.data:", res.data)
         // 부모에게 DTO 넘겨주기
         emit('saved', res.data);
   } catch (error) {
@@ -580,7 +617,7 @@ async function submit() {
   border: 1px solid #e0e0e0;
   padding: 12px;
   text-align: center;
-  vertical-align: middle;
+  vertical-align: top;
 }
 
 .navy-table th,
@@ -595,10 +632,14 @@ async function submit() {
   border-bottom: 1px solid #e0e0e0;
 }
 
-.navy-table tbody tr:hover,
-::v-deep(.editor .ProseMirror tbody tr:hover),
-::v-deep(.editor .navy-table tbody tr:hover) {
-  background-color: rgba(0, 33, 71, 0.05);
+/* 템플릿 모드 tr hover 제거 */
+.navy-table tbody tr:hover {
+  background-color: transparent !important;
+}
+
+/* 에디터 모드 tr hover 제거 */
+::v-deep(.editor .ProseMirror tbody tr:hover) {
+  background-color: transparent !important;
 }
 
 /* ========== 열 너비 고정: 구분 10%, 보고자 20%, 주요내용 70% ========== */
@@ -607,6 +648,7 @@ async function submit() {
 ::v-deep(.navy-table) th:nth-child(1),
 ::v-deep(.navy-table) td:nth-child(1) {
   width: 15%;
+  vertical-align: middle !important;
 }
 
 ::v-deep(.editor .ProseMirror table) th:nth-child(2),
@@ -619,14 +661,11 @@ async function submit() {
 ::v-deep(.editor .ProseMirror table) th:nth-child(3),
 ::v-deep(.editor .ProseMirror table) td:nth-child(3),
 ::v-deep(.navy-table) th:nth-child(3),
-::v-deep(.navy-table) td:nth-child(3) {
-  width: 70%;
-}
+::v-deep(.navy-table) td:nth-child(3) { width: 70%; }
 
-/* 에디터 모드 주요내용(3열)만 왼쪽 정렬 */
-/* .editor :deep(table th:nth-child(3)), */
+/* 에디터 모드 주요 내용(3열) td만 왼쪽 정렬 */
 .editor :deep(table td:nth-child(3)) {
-  text-align: left;
+  text-align: left !important;
 }
 /* ------------------ */
 
@@ -641,6 +680,13 @@ async function submit() {
 ::v-deep(.editor .ProseMirror table th),
 ::v-deep(.editor .ProseMirror table td) {
   min-width: unset !important;
+}
+
+::v-deep(.editor .ProseMirror p),
+::v-deep(.editor .ProseMirror br) {
+  display: block; /*기본 block 요소로 줄바꿈 작동 */
+  margin: 0;
+  white-space: normal;
 }
 
 .save-btn {
@@ -658,7 +704,6 @@ async function submit() {
   line-height: 1.5;
   background-color: #fff;
   color: #000;
-  /* 폰트, 크기 등은 필요에 따라 조정 가능 */
 }
 .editable-content:focus {
   outline: none;
@@ -672,10 +717,8 @@ async function submit() {
 .editable-content.content-box {
   min-height: 80px;
 }
-
 /* 글자 굵게 */
 .is-active {
   font-weight: bold;
 }
-
 </style>

@@ -13,7 +13,7 @@
         </tbody>
       </table>
 
-      <!-- 에디터 모드: 원본 HTML 테이블 전체 렌더링 -->
+      <!-- 에디터 모드: HTML 테이블 전체 렌더링 -->
       <div v-if="report.contentMode === 'E'">
         <div
           style="width:100%; overflow-x:auto;"
@@ -35,7 +35,7 @@
           <tr v-for="item in allItems" :key="item.type">
             <td>{{ item.type }}</td>
             <td v-html="sanitize(item.reporter)"></td>
-            <td v-html="sanitize(item.content)" style="text-align:left;"></td>
+            <td v-html="sanitize(item.content)" style="padding-left: 16px; text-align: left;"></td>
           </tr>
         </tbody>
       </table>
@@ -76,16 +76,16 @@ const allItems = computed(() => {
     {
       type: '사건 사고 발생',
       reporter: props.report.troubleRepoter,
-      content: deleteBrtag(props.report.troubleContent)
+      content: props.report.troubleContent
     },
     {
       type: '사건 사고 예방 및 칭찬사례',
       reporter: props.report.praiseRepoter,
-      content: deleteBrtag(props.report.praiseContent)
+      content: props.report.praiseContent
     },
     {
       type: '비고 (기타사항)',
-      content: deleteBrtag(props.report.etcContent)
+      content: props.report.etcContent
     }
   ]
 })
@@ -93,15 +93,6 @@ const allItems = computed(() => {
 // XSS 방어용 sanitize 헬퍼
 function sanitize(html) {
   return html ? DOMPurify.sanitize(html) : ''
-}
-
-//불필요한 br 태그 삭제
-function deleteBrtag(html) {
-  if (!html) return ''
-  // 1) br 태그만 전부 제거
-  const noBr = html.replace(/<br\s*\/?>/gi, '')
-  // 2) 그 다음 XSS 방어
-  return DOMPurify.sanitize(noBr)
 }
 </script>
 
@@ -111,6 +102,7 @@ function deleteBrtag(html) {
   width: 100%;
   border-collapse: collapse;
   border: 1px solid #e0e0e0;
+  font-size: 15px;
 }
 
 /* 헤더 & 셀 모두에 1px 실선 테두리 */
@@ -119,7 +111,7 @@ function deleteBrtag(html) {
   border: 1px solid #e0e0e0;
   padding: 12px;
   text-align: center;
-  vertical-align: middle;
+  vertical-align: top !important;
 }
 
 .navy-table th {
@@ -138,10 +130,11 @@ function deleteBrtag(html) {
 .navy-table td:nth-child(2) { width: 15%; }
 .navy-table th:nth-child(3),
 .navy-table td:nth-child(3) { width: 70%; }
-
-/* 주요내용(3열)만 왼쪽 정렬 */
+/* 주요내용(3열) td만 왼쪽 정렬 */
 .navy-table td:nth-child(3) {
-  text-align: left;
+  text-align: left !important;
+  padding-left: 16px;
+  padding-right: 16px;
 }
 
 /* v-html 로 주입된 DOM에도 동일 적용 */
@@ -165,13 +158,19 @@ function deleteBrtag(html) {
   background-color: rgba(0, 33, 71, 0.05);
 }
 ::v-deep .navy-table th:nth-child(1),
-::v-deep .navy-table td:nth-child(1) { width: 15%; }
+::v-deep .navy-table td:nth-child(1) { 
+  width: 15%;
+}
 ::v-deep .navy-table th:nth-child(2),
-::v-deep .navy-table td:nth-child(2) { width: 15%; }
+::v-deep .navy-table td:nth-child(2) { 
+  width: 15%;
+}
 ::v-deep .navy-table th:nth-child(3),
-::v-deep .navy-table td:nth-child(3) { width: 70%; }
+::v-deep .navy-table td:nth-child(3) { 
+  width: 70%;
+}
 ::v-deep .navy-table td:nth-child(3) {
-  text-align: left;
+  text-align: left
 }
 
 /* 데이터 없을 때 메시지 */

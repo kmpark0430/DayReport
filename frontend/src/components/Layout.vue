@@ -11,20 +11,22 @@
       class="v-app-bar"
     >
       <v-toolbar-title class="d-flex align-center">
-        <v-img
-          src="/stec_logo_white4.png"
-          alt="logo"
-          style="width:200px;margin-left:35px;"
-          contain
-          eager
-        />
+        <a href="/">
+          <v-img
+            src="/stec_logo_white4.png"
+            alt="logo"
+            style="width:200px;margin-left:40px;"
+            contain
+            eager
+          />
+        </a>
       </v-toolbar-title>
 
       <v-spacer />
 
-      <v-btn class="mr-2" variant="outlined" color="white" @click="openRegister" prepend-icon="mdi-file-edit">동향보고 관리</v-btn>
+      <v-btn class="mr-2" variant="outlined" color="white" @click="openRegister" prepend-icon="mdi-file-edit">동향 보고 관리</v-btn>
 
-      <v-btn class="mr-14" variant="outlined" color="white" href="http://sgw.s-tec.co.kr" target="_blank" prepend-icon="mdi-open-in-new">
+      <v-btn class="mr-12" variant="outlined" color="white" href="http://sgw.s-tec.co.kr" target="_blank" prepend-icon="mdi-open-in-new">
         그룹웨어로 이동
       </v-btn>
     </v-app-bar>
@@ -134,10 +136,10 @@
 <script setup>
 import { ref, watch, onMounted, computed } from 'vue'
 import dayjs from 'dayjs'
-import { fetchDeptCodes }   from '@/services/dept'
-import { fetchReport }      from '@/services/report'
-import ReportView           from './ReportView.vue'
-import RegistrationForm     from './RegistrationForm.vue'
+import { fetchDeptCodes } from '@/services/dept'
+import { fetchReport } from '@/services/report'
+import ReportView from './ReportView.vue'
+import RegistrationForm from './RegistrationForm.vue'
 
 // --- 구분 탭
 const companyTabs     = ['모사', '계열사']
@@ -214,15 +216,12 @@ function onSaved(returnedDto) {
 
   // savedDto가 undefined일 수도 있으므로 체크
   if (returnedDto && returnedDto.idxDate) {
-    // "YYYYMMDD" → "YYYY-MM-DD"
     const d = returnedDto.idxDate;
-    selectedDate.value = `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`;
+    selectedDate.value = `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`;   // YYYYMMDD -> YYYY-MM-DD
     selectedDept.value = returnedDto.deptCd;
   }
 
-  console.log("저장 후 복귀 returnedDto:", returnedDto)
-
-  loadReport();
+  loadReport(); //저장 후 조회로 복귀
 }
 
 // --- 부서 선택
