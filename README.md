@@ -30,7 +30,7 @@
   → HTML 전체를 저장하는 컬럼 신설
 
 ### DB 컬럼 추가
-- contentHtml : (에디터 모드용 HTML 저장)
+- contentHtml : 에디터 모드용 HTML 저장
 - contentMode : 입력 방식 구분용 플래그 (T 또는 E)
 
 ### Vue 컴포넌트 처리 방식
