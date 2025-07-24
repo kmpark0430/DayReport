@@ -45,7 +45,7 @@
 - Java 17
 - Spring Boot 2.6
 - MyBatis
-- MySQL 8
+- MySQL 5.1.49
 
 ### Frontend
 - Vue 3
